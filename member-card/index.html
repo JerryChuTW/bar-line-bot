@@ -1,1 +1,411 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Somm Mixing Glass — 會員卡</title>
+  <script src="https://static.line-scdn.net/liff/edge/versions/2.22.3/sdk.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      min-height: 100vh;
+      background: linear-gradient(150deg, #fff5ee 0%, #ffeadc 50%, #fff0e8 100%);
+      display: flex; align-items: center; justify-content: center;
+      padding: 2rem 1rem;
+      font-family: 'DM Sans', sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    .loading {
+      text-align: center;
+      color: #f03d1a;
+      font-family: 'Playfair Display', serif;
+      font-size: 20px;
+    }
+    .loading-sub { font-size: 13px; color: #aaa; margin-top: 8px; font-family: 'DM Sans', sans-serif; }
+    .card {
+      width: 100%; max-width: 360px;
+      background: #fff; border-radius: 24px;
+      padding: 0 0 1.75rem; position: relative; overflow: hidden;
+      box-shadow: 0 8px 40px rgba(240,61,26,0.12), 0 2px 8px rgba(0,0,0,0.06);
+      display: none;
+    }
+    .card-hero {
+      background: linear-gradient(135deg, #f03d1a 0%, #f5893a 55%, #f5a623 100%);
+      padding: 1.5rem 1.5rem 1.25rem; position: relative; overflow: hidden;
+    }
+    .card-hero::after {
+      content: ''; position: absolute; top: -40px; right: -40px;
+      width: 160px; height: 160px; background: rgba(255,255,255,0.08); border-radius: 50%;
+    }
+    .top-row { display: flex; align-items: flex-start; justify-content: space-between; }
+    .bar-name { font-size: 9px; font-weight: 500; letter-spacing: 0.38em; color: rgba(255,255,255,0.75); text-transform: uppercase; margin-bottom: 5px; }
+    .bar-title { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 900; color: #fff; line-height: 1.05; text-shadow: 0 2px 16px rgba(0,0,0,0.22); }
+    .member-badge { background: rgba(255,255,255,0.2); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.35); border-radius: 20px; padding: 4px 12px; font-size: 10px; font-weight: 600; letter-spacing: 0.2em; color: #fff; text-transform: uppercase; }
+    .hero-member { margin-top: 1.25rem; display: flex; align-items: flex-end; justify-content: space-between; }
+    .member-name { font-family: 'Playfair Display', serif; font-size: 34px; font-weight: 900; color: #fff; line-height: 1; text-shadow: 0 2px 16px rgba(0,0,0,0.22); }
+    .level-chip { display: flex; align-items: center; gap: 5px; background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.3); border-radius: 20px; padding: 4px 10px; margin-bottom: 3px; }
+    .level-dot { width: 6px; height: 6px; border-radius: 50%; background: #fff; }
+    .level-chip-text { font-size: 11px; font-weight: 600; color: #fff; letter-spacing: 0.05em; white-space: nowrap; }
+    .card-body { padding: 1.5rem 1.5rem 0; }
+    .progress-block { background: #fdf8f6; border: 1px solid #f5e6e0; border-radius: 16px; padding: 1.1rem; margin-bottom: 1rem; }
+    .progress-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.85rem; }
+    .progress-label { font-size: 9px; font-weight: 700; letter-spacing: 0.28em; color: #f03d1a; text-transform: uppercase; margin-bottom: 5px; }
+    .progress-spend { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; color: #1a1a1a; line-height: 1; }
+    .progress-spend-sub { font-size: 11px; color: #777; font-weight: 500; margin-top: 2px; }
+    .progress-pct { font-family: 'Playfair Display', serif; font-size: 32px; font-weight: 900; color: #f03d1a; line-height: 1; }
+    .progress-pct-label { font-size: 10px; color: #888; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; margin-top: 2px; text-align: right; }
+    .progress-track { width: 100%; height: 10px; background: #ede4e0; border-radius: 5px; overflow: hidden; margin-bottom: 8px; position: relative; }
+    .progress-track::after { content: ''; position: absolute; inset: -2px; border-radius: 7px; box-shadow: 0 0 10px rgba(240,61,26,0.25); animation: track-glow 2.5s ease-in-out infinite; pointer-events: none; }
+    @keyframes track-glow { 0%,100%{box-shadow:0 0 6px rgba(240,61,26,0.2)} 50%{box-shadow:0 0 16px rgba(245,166,35,0.45)} }
+    .progress-fill { height: 100%; width: 0%; border-radius: 5px; background: linear-gradient(90deg, #f03d1a 0%, #f5893a 55%, #f5a623 100%); transition: width 1.4s cubic-bezier(0.4,0,0.2,1); position: relative; overflow: hidden; }
+    .progress-fill::before { content: ''; position: absolute; top: 0; left: -60%; width: 40%; height: 100%; background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.55) 50%, transparent 100%); animation: sweep 2.2s ease-in-out infinite; }
+    @keyframes sweep { 0%{left:-60%;opacity:0} 20%{opacity:1} 100%{left:120%;opacity:0} }
+    .tier-labels { display: flex; justify-content: space-between; }
+    .tier-label { font-size: 10px; font-weight: 600; color: #999; }
+    .tier-label.active { color: #f03d1a; }
+    .tier-label.next { color: #f5a623; }
+    .next-level-card { background: linear-gradient(135deg, #fff5f2, #fffbf5); border: 1px solid #fad8cc; border-radius: 14px; padding: 1rem 1.1rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 12px; }
+    .trophy-wrap { width: 40px; height: 40px; background: linear-gradient(135deg, #fff0eb, #fff8ed); border: 1px solid #fdd8cc; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .next-level-label { font-size: 10px; font-weight: 700; color: #888; letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 3px; }
+    .next-level-name { font-family: 'Playfair Display', serif; font-size: 17px; font-weight: 700; color: #1a1a1a; margin-bottom: 3px; }
+    .next-level-gap { font-size: 12px; color: #666; }
+    .next-level-gap strong { color: #f03d1a; }
+    .coupon-btn { width: 100%; padding: 1rem; background: linear-gradient(135deg, #f03d1a 0%, #f5893a 55%, #f5a623 100%); border: none; border-radius: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: all 0.25s ease; box-shadow: 0 6px 20px rgba(240,61,26,0.32); margin-bottom: 0.75rem; }
+    .coupon-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(240,61,26,0.4); }
+    .coupon-icon { font-size: 20px; color: rgba(255,255,255,0.9); }
+    .coupon-label { font-family: 'Playfair Display', serif; font-size: 17px; font-weight: 700; font-style: italic; color: #fff; }
+    .expand-toggle { width: 100%; background: #fdf8f6; border: 1px solid #f0e4de; border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 8px; padding: 0.75rem 1rem; margin-bottom: 0.6rem; transition: all 0.2s; }
+    .expand-toggle:hover { border-color: #f5a623; background: #fff9f5; }
+    .expand-toggle.active { border-color: #f03d1a; background: #fff5f2; }
+    .toggle-icon-wrap { width: 28px; height: 28px; border-radius: 8px; background: linear-gradient(135deg, #f03d1a, #f5a623); display: flex; align-items: center; justify-content: center; }
+    .toggle-icon-wrap i { font-size: 14px; color: #fff; }
+    .expand-toggle-label { flex: 1; font-size: 13px; font-weight: 600; color: #333; text-align: left; }
+    .expand-chevron { font-size: 16px; color: #ccc; transition: transform 0.3s; }
+    .expand-chevron.open { transform: rotate(180deg); }
+    .expand-section { max-height: 0; overflow: hidden; transition: max-height 0.45s ease; }
+    .expand-section.open { max-height: 900px; }
+    .expand-inner { background: #fdf8f6; border: 1px solid #f0e4de; border-radius: 12px; padding: 1rem 1.1rem; margin-bottom: 0.6rem; }
+    .reward-row { display: flex; gap: 12px; align-items: flex-start; padding: 0.85rem 0; border-bottom: 1px solid #f5ece8; }
+    .reward-row:first-child { padding-top: 0; }
+    .reward-row:last-child { border-bottom: none; padding-bottom: 0; }
+    .reward-lv-wrap { display: flex; flex-direction: column; align-items: center; gap: 4px; flex-shrink: 0; }
+    .reward-lv { width: 32px; height: 32px; border-radius: 10px; border: 1.5px solid #edd8d0; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: #ddd; }
+    .reward-lv.current { background: linear-gradient(135deg, #f03d1a, #f5a623); border-color: transparent; color: #fff; }
+    .reward-lv-line { width: 1.5px; flex: 1; background: #f0e4de; min-height: 12px; }
+    .reward-info { flex: 1; padding-top: 2px; }
+    .reward-name { font-family: 'Playfair Display', serif; font-size: 15px; font-weight: 700; color: #888; margin-bottom: 2px; }
+    .reward-name.current { color: #1a1a1a; }
+    .reward-threshold { font-size: 10px; font-weight: 600; letter-spacing: 0.08em; color: #aaa; margin-bottom: 5px; text-transform: uppercase; }
+    .reward-threshold.current { color: #f03d1a; }
+    .reward-bonus { font-size: 12.5px; color: #777; line-height: 1.6; }
+    .reward-bonus.current { color: #333; background: #fff; border-left: 3px solid #f03d1a; padding: 8px 10px; border-radius: 0 8px 8px 0; }
+    .cal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+    .cal-month { font-family: 'Playfair Display', serif; font-size: 17px; font-weight: 700; color: #1a1a1a; }
+    .cal-nav { width: 30px; height: 30px; border-radius: 8px; background: #fff; border: 1px solid #f0e4de; cursor: pointer; font-size: 18px; color: #f03d1a; display: flex; align-items: center; justify-content: center; }
+    .cal-weekdays { display: grid; grid-template-columns: repeat(7,1fr); margin-bottom: 6px; }
+    .cal-wd { text-align: center; font-size: 9px; font-weight: 600; letter-spacing: 0.08em; color: #bbb; padding: 3px 0; text-transform: uppercase; }
+    .cal-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 4px; }
+    .cal-cell { aspect-ratio: 1; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .cal-cell.in-range .cal-date { color: #999; }
+    .cal-cell.has-spend { background: #fff5f2; border: 1px solid #fad8cc; cursor: pointer; }
+    .cal-cell.has-spend .cal-date { color: #1a1a1a; font-weight: 600; }
+    .cal-cell.today { background: linear-gradient(135deg, #f03d1a, #f5a623); }
+    .cal-cell.today .cal-date { color: #fff; font-weight: 700; }
+    .cal-cell.today .cal-amt { color: rgba(255,255,255,0.85); }
+    .cal-date { font-size: 11px; line-height: 1; color: #ddd; }
+    .cal-amt { font-size: 7.5px; color: #f03d1a; margin-top: 2px; font-weight: 700; white-space: nowrap; }
+    .history-summary { margin-top: 1rem; padding: 0.75rem 1rem; background: #fff; border: 1px solid #f0e4de; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; }
+    .hist-sum-label { font-size: 11px; font-weight: 500; color: #aaa; letter-spacing: 0.1em; text-transform: uppercase; }
+    .hist-sum-val { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; color: #f03d1a; }
+    .bottom-note { text-align: center; margin-top: 1.25rem; font-size: 10px; font-weight: 500; color: #ddd; letter-spacing: 0.18em; text-transform: uppercase; }
+    @keyframes shimmer { 0%,100%{opacity:1} 50%{opacity:0.5} }
+    .shimmer { animation: shimmer 2.4s infinite; }
+    .redeemed { background: #f0faf4 !important; box-shadow: 0 2px 8px rgba(60,180,100,0.15) !important; cursor: default !important; }
+    .redeemed .coupon-icon, .redeemed .coupon-label { color: #3db86a !important; }
+    .not-member { text-align: center; padding: 2rem; }
+    .not-member h2 { font-family: 'Playfair Display', serif; color: #f03d1a; margin-bottom: 0.5rem; }
+    .not-member p { color: #666; font-size: 14px; }
+  </style>
+</head>
+<body>
 
+<div class="loading" id="loadingState">
+  <div>🍸 載入會員資料中...</div>
+  <div class="loading-sub">請稍候</div>
+</div>
+
+<div class="card" id="memberCard">
+  <div class="card-hero">
+    <div class="top-row">
+      <div>
+        <div class="bar-name">Member Card</div>
+        <div class="bar-title">Somm <em>Mixing Glass</em></div>
+      </div>
+      <div class="member-badge">VIP</div>
+    </div>
+    <div class="hero-member">
+      <div class="member-name" id="memberName">—</div>
+      <div class="level-chip">
+        <div class="level-dot"></div>
+        <div class="level-chip-text" id="levelChip">—</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card-body">
+    <div class="progress-block">
+      <div class="progress-header">
+        <div>
+          <div class="progress-label">微醺進度</div>
+          <div class="progress-spend" id="spendAmount">$0</div>
+          <div class="progress-spend-sub">過去 30 天累積消費</div>
+        </div>
+        <div>
+          <div class="progress-pct" id="progressPct">0%</div>
+          <div class="progress-pct-label">至下一階</div>
+        </div>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+      <div class="tier-labels">
+        <span class="tier-label active" id="currentTierLabel">—</span>
+        <span class="tier-label next" id="nextTierLabel">—</span>
+      </div>
+    </div>
+
+    <div class="next-level-card">
+      <div class="trophy-wrap">
+        <i class="ti ti-trophy" style="font-size:20px;color:#f5a623;"></i>
+      </div>
+      <div>
+        <div class="next-level-label">距離下一階</div>
+        <div class="next-level-name" id="nextLevelName">—</div>
+        <div class="next-level-gap">還差 <strong id="gapAmount">—</strong> 即可升級</div>
+      </div>
+    </div>
+
+    <button class="coupon-btn" id="couponBtn" onclick="redeemCoupon()">
+      <i class="ti ti-glass coupon-icon shimmer" id="couponIcon"></i>
+      <span class="coupon-label" id="couponLabel">使用今日兌換券</span>
+    </button>
+
+    <button class="expand-toggle" id="rewardsToggle" onclick="toggleSection('rewards')">
+      <div class="toggle-icon-wrap"><i class="ti ti-gift"></i></div>
+      <span class="expand-toggle-label">查看各等級獎勵</span>
+      <i class="ti ti-chevron-down expand-chevron" id="rewardsChevron"></i>
+    </button>
+    <div class="expand-section" id="rewardsSection">
+      <div class="expand-inner" id="rewardsInner"></div>
+    </div>
+
+    <button class="expand-toggle" id="historyToggle" onclick="toggleSection('history')">
+      <div class="toggle-icon-wrap"><i class="ti ti-calendar"></i></div>
+      <span class="expand-toggle-label">過去 30 天消費記錄</span>
+      <i class="ti ti-chevron-down expand-chevron" id="historyChevron"></i>
+    </button>
+    <div class="expand-section" id="historySection">
+      <div class="expand-inner">
+        <div class="cal-header">
+          <button class="cal-nav" onclick="calPrev()">&#8249;</button>
+          <div class="cal-month" id="calMonth"></div>
+          <button class="cal-nav" onclick="calNext()">&#8250;</button>
+        </div>
+        <div class="cal-weekdays">
+          <div class="cal-wd">日</div><div class="cal-wd">一</div><div class="cal-wd">二</div>
+          <div class="cal-wd">三</div><div class="cal-wd">四</div><div class="cal-wd">五</div><div class="cal-wd">六</div>
+        </div>
+        <div class="cal-grid" id="calGrid"></div>
+        <div class="history-summary">
+          <div class="hist-sum-label">30 天累計消費</div>
+          <div class="hist-sum-val" id="historySummary">$0</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bottom-note">Powered by Somm · 30-Day Rolling</div>
+  </div>
+</div>
+
+<script>
+  // ⚠️ 換成你自己的值
+  const LIFF_ID = '你的LIFF_ID';
+  const SUPABASE_URL = '你的Supabase_Project_URL';
+  const SUPABASE_ANON_KEY = '你的Supabase_anon_key';
+
+  // 等級設定
+  const TIERS = [
+    { name: 'Somm NPC',     min: 3000,  bonus: '一、二、三、日進店，吧台招待微醺續航 Highball / Gin 一杯。' },
+    { name: '野格轟炸機',   min: 5000,  bonus: '專屬刻名野格大酒一支（限店內寄酒）。' },
+    { name: '榮譽侍酒大戶', min: 8000,  bonus: '每週尊享一次價值 $999 精選紅白酒套餐組。' },
+    { name: '酒精鬼殺隊',   min: 12000, bonus: '頂級窖藏紅白酒一瓶（店內售價 $3,200）。' },
+  ];
+
+  let spendData = {};
+  let calDate = new Date();
+  let totalSpend = 0;
+
+  function getCurrentTier(spend) {
+    let tier = null;
+    for (const t of TIERS) { if (spend >= t.min) tier = t; }
+    return tier;
+  }
+
+  function getNextTier(spend) {
+    return TIERS.find(t => t.min > spend) || null;
+  }
+
+  function pad(n) { return String(n).padStart(2, '0'); }
+  function dateKey(y, m, d) { return y + '-' + pad(m + 1) + '-' + pad(d); }
+
+  function renderCard(member, transactions) {
+    totalSpend = transactions.reduce((sum, t) => sum + t.amount, 0);
+    transactions.forEach(t => {
+      const d = new Date(t.created_at);
+      const key = dateKey(d.getFullYear(), d.getMonth(), d.getDate());
+      spendData[key] = (spendData[key] || 0) + t.amount;
+    });
+
+    const currentTier = getCurrentTier(totalSpend);
+    const nextTier = getNextTier(totalSpend);
+
+    document.getElementById('memberName').textContent = member.display_name || member.real_name || '會員';
+    document.getElementById('levelChip').textContent = currentTier ? `Lv.${TIERS.indexOf(currentTier)+1} · ${currentTier.name}` : 'Lv.0 · 新會員';
+    document.getElementById('spendAmount').textContent = '$' + totalSpend.toLocaleString();
+
+    if (nextTier) {
+      const pct = Math.min(Math.round((totalSpend / nextTier.min) * 100), 100);
+      const gap = nextTier.min - totalSpend;
+      document.getElementById('progressPct').textContent = pct + '%';
+      document.getElementById('progressFill').style.width = pct + '%';
+      document.getElementById('currentTierLabel').textContent = currentTier ? `✦ $${currentTier.min.toLocaleString()} ${currentTier.name}` : '✦ 新會員';
+      document.getElementById('nextTierLabel').textContent = `$${nextTier.min.toLocaleString()} →`;
+      document.getElementById('nextLevelName').textContent = nextTier.name;
+      document.getElementById('gapAmount').textContent = '$' + gap.toLocaleString();
+    } else {
+      document.getElementById('progressPct').textContent = '100%';
+      document.getElementById('progressFill').style.width = '100%';
+      document.getElementById('nextLevelName').textContent = '最高等級達成！';
+      document.getElementById('gapAmount').textContent = '🎉';
+    }
+
+    document.getElementById('historySummary').textContent = '$' + totalSpend.toLocaleString();
+    renderRewards(currentTier);
+
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('memberCard').style.display = 'block';
+  }
+
+  function renderRewards(currentTier) {
+    const inner = document.getElementById('rewardsInner');
+    inner.innerHTML = TIERS.map((t, i) => {
+      const isCurrent = currentTier && t.name === currentTier.name;
+      const isLast = i === TIERS.length - 1;
+      return `
+        <div class="reward-row">
+          <div class="reward-lv-wrap">
+            <div class="reward-lv ${isCurrent ? 'current' : ''}">L${i+1}</div>
+            ${!isLast ? '<div class="reward-lv-line"></div>' : ''}
+          </div>
+          <div class="reward-info">
+            <div class="reward-name ${isCurrent ? 'current' : ''}">${t.name}</div>
+            <div class="reward-threshold ${isCurrent ? 'current' : ''}">累積滿 $${t.min.toLocaleString()}</div>
+            <div class="reward-bonus ${isCurrent ? 'current' : ''}">${t.bonus}</div>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function renderCal() {
+    const y = calDate.getFullYear(), m = calDate.getMonth();
+    const months = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+    document.getElementById('calMonth').textContent = y + ' 年 ' + months[m];
+    const firstDay = new Date(y, m, 1).getDay();
+    const daysInMonth = new Date(y, m + 1, 0).getDate();
+    const today = new Date();
+    const rangeStart = new Date(today); rangeStart.setDate(today.getDate() - 29);
+    const grid = document.getElementById('calGrid');
+    grid.innerHTML = '';
+    for (let i = 0; i < firstDay; i++) grid.appendChild(document.createElement('div'));
+    for (let d = 1; d <= daysInMonth; d++) {
+      const key = dateKey(y, m, d);
+      const thisDate = new Date(y, m, d);
+      const cell = document.createElement('div');
+      cell.className = 'cal-cell';
+      const isToday = y === today.getFullYear() && m === today.getMonth() && d === today.getDate();
+      const inRange = thisDate >= rangeStart && thisDate <= today;
+      const amt = spendData[key];
+      if (isToday) cell.classList.add('today');
+      else if (inRange) cell.classList.add('in-range');
+      if (amt) {
+        cell.classList.add('has-spend');
+        cell.innerHTML = `<div class="cal-date">${d}</div><div class="cal-amt">$${amt.toLocaleString()}</div>`;
+      } else {
+        cell.innerHTML = `<div class="cal-date">${d}</div>`;
+      }
+      grid.appendChild(cell);
+    }
+  }
+
+  function calPrev() { calDate.setMonth(calDate.getMonth() - 1); renderCal(); }
+  function calNext() { calDate.setMonth(calDate.getMonth() + 1); renderCal(); }
+
+  function toggleSection(name) {
+    const section = document.getElementById(name + 'Section');
+    const chevron = document.getElementById(name + 'Chevron');
+    const toggle = document.getElementById(name + 'Toggle');
+    const isOpen = section.classList.toggle('open');
+    chevron.classList.toggle('open');
+    toggle.classList.toggle('active');
+    if (name === 'history' && isOpen) renderCal();
+  }
+
+  async function redeemCoupon() {
+    const btn = document.getElementById('couponBtn');
+    document.getElementById('couponIcon').className = 'ti ti-circle-check coupon-icon';
+    document.getElementById('couponLabel').textContent = '已使用，請給店員確認';
+    btn.classList.add('redeemed');
+    btn.onclick = null;
+  }
+
+  // ── 主程式：LIFF 初始化 + 撈資料 ──
+  async function init() {
+    await liff.init({ liffId: LIFF_ID });
+    if (!liff.isLoggedIn()) { liff.login(); return; }
+
+    const profile = await liff.getProfile();
+    const lineUserId = profile.userId;
+
+    // 撈會員資料
+    const memberRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/members?line_user_id=eq.${lineUserId}&select=*`,
+      { headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` } }
+    );
+    const members = await memberRes.json();
+    if (!members.length) {
+      document.getElementById('loadingState').innerHTML = '<div class="not-member"><h2>你還不是會員</h2><p>請先在 LINE 完成手機號碼註冊</p></div>';
+      return;
+    }
+    const member = members[0];
+
+    // 撈過去 30 天消費紀錄
+    const since = new Date(); since.setDate(since.getDate() - 29);
+    const txRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/transactions?member_id=eq.${member.id}&created_at=gte.${since.toISOString()}&select=*`,
+      { headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` } }
+    );
+    const transactions = await txRes.json();
+
+    renderCard(member, transactions);
+  }
+
+  init().catch(err => {
+    document.getElementById('loadingState').innerHTML = `<div style="color:#f03d1a">載入失敗，請重新整理<br><small>${err.message}</small></div>`;
+  });
+</script>
+</body>
+</html>
